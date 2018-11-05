@@ -28,6 +28,7 @@ class Game:
         # call the run method
         self.run()
     def run(self):
+        # set boolean playing to true
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
