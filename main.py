@@ -1,5 +1,6 @@
 # this file was created by Chris Cozort
 # Sources: goo.gl/2KMivS 
+# now available in github
 import pygame as pg
 import random
 from settings import *
