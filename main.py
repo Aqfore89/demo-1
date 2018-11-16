@@ -13,6 +13,7 @@ import pygame as pg
 import random
 from settings import *
 from sprites import *
+from os import path
 
 class Game:
     def __init__(self):
@@ -26,6 +27,20 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
         self.font_name = pg.font.match_font(FONT_NAME)
+        self.load_data()
+        # method to load all game data
+    def load_data(self):
+        # sets up directory name
+        self.dir = path.dirname(__file__)
+        # opens file with write options
+        ''' with is a contextual option that handles both opening and closing of files to avoid
+        issues with forgetting to close
+        '''
+        with open(path.join(self.dir, HS_FILE), 'w') as f:
+            try:
+                self.highscore = int(f.read())
+            except:
+                self.highscore = 0
     def new(self):
         self.score = 0
         # add all sprites to the pg group
@@ -117,6 +132,7 @@ class Game:
         self.draw_text(TITLE, 48, WHITE, WIDTH/2, HEIGHT/4)
         self.draw_text("WASD to move, Space to jump", 22, WHITE, WIDTH/2, HEIGHT/2)
         self.draw_text("Press any key to play...", 22, WHITE, WIDTH / 2, HEIGHT * 3/4)
+        self.draw_text("High score " + str(self.highscore), 22, WHITE, WIDTH / 2, 15)
         pg.display.flip()
         self.wait_for_key()
     def show_go_screen(self):

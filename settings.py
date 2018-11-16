@@ -9,6 +9,8 @@ WHITE = (255, 255, 255)
 BLACK = (0,0,0)
 REDDISH = (240,55,66)
 FONT_NAME = 'arial'
+# data files
+HS_FILE = "highscore.txt"
 # player settings
 PLAYER_ACC = 0.5
 PLAYER_FRICTION = -0.12
