@@ -9,6 +9,9 @@ Curious, Creative, Tenacious(requires hopefulness)
 Jump on enemy head to create jump boost using power up code
 Randomize jump sound
 
+**********Cosmetics
+Change hero images (5 images), platforms, clouds, enemies(2 images), bg image?
+
 **********Bugs
 when you get launched by powerup or head jump player sometimes snaps to platform abruptly 
 happens when hitting jump during power up boost
@@ -19,8 +22,6 @@ Lower spawn location so player can get out of random stuck situations
 
 **********Features
 Varied powerups
-
-
 '''
 import pygame as pg
 import random
@@ -29,6 +30,7 @@ from sprites import *
 from os import path
 
 class Game:
+    ##### INIT METHOD
     def __init__(self):
         #init game window
         # init pygame and create window
@@ -41,6 +43,7 @@ class Game:
         self.running = True
         self.font_name = pg.font.match_font(FONT_NAME)
         self.load_data()
+    ##### LOAD DATA METHOD
     def load_data(self):
         print("load data is called...")
         # sets up directory name for images
@@ -72,6 +75,7 @@ class Game:
                             pg.mixer.Sound(path.join(self.snd_dir, 'Jump24.wav'))]
         self.boost_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump29.wav'))
         self.head_jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump39.wav'))
+    ##### NEW METHOD
     def new(self):
         self.score = 0
         self.paused = False
@@ -123,24 +127,23 @@ class Game:
             self.draw()
         pg.mixer.music.fadeout(1000)
         # other things that happen when not playing anymore
+    ##### UPDATE METHOD
     def update(self):
         self.all_sprites.update()
         # shall we spawn a mob?
         now = pg.time.get_ticks()
-        ##### check for mob collisions ######
+        # check for mob collisions
         if now - self.mob_timer > 5000 + random.choice([-1000, -500, 0, 500, 1000]):
             self.mob_timer = now
             Mob(self)
-        ##### now using collision mask to determine collisions
-        ##### can use rectangle collisions here first if we encounter performance issues
+        # now using collision mask to determine collisions
+        # can use rectangle collisions here first if we encounter performance issues
         mob_hits = pg.sprite.spritecollide(self.player, self.mobs, False, pg.sprite.collide_mask)
         if mob_hits:
             # can use mask collide here if mob count gets too high and creates performance issues
             ''' I created the below code as an added feature:
                 I wanted to create an option to jump on the enemies'
-                heads to prevent getting stuck...
-            
-            '''
+                heads to prevent getting stuck...'''
             if self.player.pos.y - 35 < mob_hits[0].rect.top:
                 print("hit top")
                 print("player is " + str(self.player.pos.y))
@@ -151,11 +154,12 @@ class Game:
                 print("player is " + str(self.player.pos.y))
                 print("mob is " + str(mob_hits[0].rect.top))
                 self.playing = False
-        ##### check to see if player can jump - if falling
+        # check to see if player can jump - if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.platforms, False)
             if hits:
-                # set var to be current hit in list to find which to 'pop' to when two or more collide with player
+                ''' set var to be current hit in list to find which to 'pop' to 
+                when two or more collide with player'''
                 find_lowest = hits[0]
                 for hit in hits:
                     if hit.rect.bottom > find_lowest.rect.bottom:
@@ -167,7 +171,7 @@ class Game:
                         self.player.pos.y = find_lowest.rect.top
                         self.player.vel.y = 0
                         self.player.jumping = False
-        ##### if player reaches top 1/4 of screen...
+        # if player reaches top 1/4 of screen...
         if self.player.rect.top <= HEIGHT / 4:
             # spawn a cloud
             if randrange(100) < 13:
@@ -177,8 +181,7 @@ class Game:
             for cloud in self.clouds:
                 cloud.rect.y += max(abs(self.player.vel.y / randrange(2,10)), 2)
             # creates slight scroll at the top based on player y velocity
-            # scroll plats with player
-            
+            # scroll plats and mobs with player
             for mob in self.mobs:
                 # creates slight scroll based on player y velocity
                 mob.rect.y += max(abs(self.player.vel.y), 2)
@@ -188,7 +191,7 @@ class Game:
                 if plat.rect.top >= HEIGHT + 40:
                     plat.kill()
                     self.score += 10
-        ##### if player hits a power up
+        # if player hits a power up
         pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
         for pow in pow_hits:
             if pow.type == 'boost':
@@ -222,6 +225,7 @@ class Game:
                             random.randrange(-75, -30))
             # self.platforms.add(p)
             # self.all_sprites.add(p)
+    ##### EVENTS METHOD
     def events(self):
         for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -239,6 +243,7 @@ class Game:
                     if event.key == pg.K_p:
                         """ pause """
                         self.paused = True
+    ##### DRAW METHOD
     def draw(self):
         self.screen.fill(SKY_BLUE)
         self.all_sprites.draw(self.screen)
@@ -247,6 +252,7 @@ class Game:
         self.draw_text(str(self.score), 22, WHITE, WIDTH / 2, 15)
         # double buffering - renders a frame "behind" the displayed frame
         pg.display.flip()
+    ##### WAIT FOR KEY METHOD
     def wait_for_key(self): 
         waiting = True
         while waiting:
@@ -257,6 +263,7 @@ class Game:
                     self.running = False
                 if event.type ==pg.KEYUP:
                     waiting = False
+    ##### SHOW START SCREEN METHOD
     def show_start_screen(self):
         """ # game splash screen """
         self.screen.fill(BLACK)
@@ -266,6 +273,7 @@ class Game:
         self.draw_text("High score " + str(self.highscore), 22, WHITE, WIDTH / 2, 15)
         pg.display.flip()
         self.wait_for_key()
+    ##### SHOW GO SCREEN METHOD
     def show_go_screen(self):
         """ # game splash screen """
         if not self.running:
@@ -288,6 +296,7 @@ class Game:
 
         pg.display.flip()
         self.wait_for_key()
+    ##### DRAW TEXT METHOD
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font(self.font_name, size)
         text_surface = font.render(text, True, color)
