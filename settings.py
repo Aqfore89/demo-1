@@ -39,7 +39,10 @@ PLATFORM_LIST = [(0, HEIGHT - 40, WIDTH, 40),
                  (200, HEIGHT - 150, WIDTH-350, 40),
                  (200, HEIGHT - 450, WIDTH-350, 40)]
 '''
-PLATFORM_LIST = [(0, HEIGHT - 40),
+PLATFORM_LIST = [(0, HEIGHT-40),
+                (50, HEIGHT-40),
+                (100, HEIGHT-40),
+                (150, HEIGHT-40),
                  (65, HEIGHT - 300),
                  (20, HEIGHT - 350),
                  (200, HEIGHT - 150),

@@ -1,5 +1,5 @@
 # this file was created by Chris Cozort
-# Sources: goo.gl/2KMivS 
+# Sources: goo.gl/2KMivS - thanks Chris Bradfield!
 # now available in github
 
 '''
@@ -43,7 +43,7 @@ class Game:
         self.load_data()
     def load_data(self):
         print("load data is called...")
-        # sets up directory name
+        # sets up directory name for images
         self.dir = path.dirname(__file__)
         img_dir = path.join(self.dir, 'img')
         # opens file with write options
@@ -74,6 +74,7 @@ class Game:
         self.head_jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump39.wav'))
     def new(self):
         self.score = 0
+        self.paused = False
         # add all sprites to the pg group
         # below no longer needed - using LayeredUpdate group
         # self.all_sprites = pg.sprite.Group()
@@ -84,6 +85,8 @@ class Game:
         self.clouds = pg.sprite.Group()
         # add powerups
         self.powerups = pg.sprite.Group()
+        # add cacti
+        self.cacti = pg.sprite.Group()
         
         self.mob_timer = 0
         # add a player 1 to the group
@@ -119,32 +122,36 @@ class Game:
             self.update()
             self.draw()
         pg.mixer.music.fadeout(1000)
+        # other things that happen when not playing anymore
     def update(self):
         self.all_sprites.update()
-        
         # shall we spawn a mob?
         now = pg.time.get_ticks()
+        ##### check for mob collisions ######
         if now - self.mob_timer > 5000 + random.choice([-1000, -500, 0, 500, 1000]):
             self.mob_timer = now
             Mob(self)
-        ##### check for mob collisions ######
-        # now using collision mask to determine collisions
-        # can use rectangle collisions here first if we encounter performance issues
+        ##### now using collision mask to determine collisions
+        ##### can use rectangle collisions here first if we encounter performance issues
         mob_hits = pg.sprite.spritecollide(self.player, self.mobs, False, pg.sprite.collide_mask)
         if mob_hits:
             # can use mask collide here if mob count gets too high and creates performance issues
-            if self.player.pos.y - 35 < mob_hits[0].rect_top:
+            ''' I created the below code as an added feature:
+                I wanted to create an option to jump on the enemies'
+                heads to prevent getting stuck...
+            
+            '''
+            if self.player.pos.y - 35 < mob_hits[0].rect.top:
                 print("hit top")
                 print("player is " + str(self.player.pos.y))
-                print("mob is " + str(mob_hits[0].rect_top))
+                print("mob is " + str(mob_hits[0].rect.top))
                 self.head_jump_sound.play()
                 self.player.vel.y = -BOOST_POWER
             else:
                 print("player is " + str(self.player.pos.y))
-                print("mob is " + str(mob_hits[0].rect_top))
+                print("mob is " + str(mob_hits[0].rect.top))
                 self.playing = False
-
-        # check to see if player can jump - if falling
+        ##### check to see if player can jump - if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.platforms, False)
             if hits:
@@ -155,13 +162,12 @@ class Game:
                         print("hit rect bottom " + str(hit.rect.bottom))
                         find_lowest = hit
                 # fall if center is off platform
-                if self.player.pos.x < find_lowest.rect.right + 10 and self.player.pos.x > find_lowest.rect.left - 10:
+                if self.player.pos.x < find_lowest.rect.right + 5 and self.player.pos.x > find_lowest.rect.left - 5:
                     if self.player.pos.y < find_lowest.rect.centery:
                         self.player.pos.y = find_lowest.rect.top
                         self.player.vel.y = 0
                         self.player.jumping = False
-                
-        # if player reaches top 1/4 of screen...
+        ##### if player reaches top 1/4 of screen...
         if self.player.rect.top <= HEIGHT / 4:
             # spawn a cloud
             if randrange(100) < 13:
@@ -182,14 +188,19 @@ class Game:
                 if plat.rect.top >= HEIGHT + 40:
                     plat.kill()
                     self.score += 10
-        # if player hits a power up
+        ##### if player hits a power up
         pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
         for pow in pow_hits:
             if pow.type == 'boost':
                 self.boost_sound.play()
                 self.player.vel.y = -BOOST_POWER
                 self.player.jumping = False
-        
+        cacti_hits = pg.sprite.spritecollide(self.player, self.cacti, False)
+        if cacti_hits:    
+            if self.player.vel.y > 0 and self.player.pos.y > cacti_hits[0].rect.top:
+                    print("falling")
+                    print("player is " + str(self.player.pos.y))
+                    print("mob is " + str(cacti_hits[0].rect.top))
         # Die!
         if self.player.rect.bottom > HEIGHT:
             '''make all sprites fall up when player falls'''
@@ -224,6 +235,10 @@ class Game:
                     if event.key == pg.K_SPACE:
                         """ # cuts the jump short if the space bar is released """
                         self.player.jump_cut()
+                if event.type == pg.KEYUP:
+                    if event.key == pg.K_p:
+                        """ pause """
+                        self.paused = True
     def draw(self):
         self.screen.fill(SKY_BLUE)
         self.all_sprites.draw(self.screen)

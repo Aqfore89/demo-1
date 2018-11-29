@@ -165,6 +165,8 @@ class Cloud(Sprite):
     def update(self):
         if self.rect.top > HEIGHT * 2: 
             self.kill
+            ''' mr cozort added animated clouds and made it so they 
+            restart on the other side of the screen'''
         self.rect.x += self.speed
         if self.rect.x > WIDTH:
             self.rect.x = -self.rect.width
@@ -186,8 +188,12 @@ class Platform(Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.ground_level = False
         if random.randrange(100) < POW_SPAWN_PCT:
             Pow(self.game, self)
+        if random.randrange(100) < POW_SPAWN_PCT:
+            Cactus(self.game, self)
+        
 class Pow(Sprite):
     def __init__(self, game, plat):
         # allows layering in LayeredUpdates sprite group
@@ -248,4 +254,23 @@ class Mob(Sprite):
         self.rect_top = self.rect.top
         self.rect.y += self.vy
         if self.rect.left > WIDTH + 100 or self.rect.right < -100:
+            self.kill()
+class Cactus(Sprite):
+    def __init__(self, game, plat):
+        # allows layering in LayeredUpdates sprite group
+        self._layer = POW_LAYER
+        # add a groups property where we can pass all instances of this object into game groups
+        self.groups = game.all_sprites, game.cacti
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        self.plat = plat
+        self.image = self.game.spritesheet.get_image(707,134,117,160)
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.plat.rect.centerx
+        self.rect.bottom = self.plat.rect.top - 5
+    def update(self):
+        self.rect.bottom = self.plat.rect.top - 5
+        # checks to see if plat is in the game's platforms group so we can kill the powerup instance
+        if not self.game.platforms.has(self.plat):
             self.kill()
